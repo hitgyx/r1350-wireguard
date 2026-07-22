@@ -1,0 +1,18 @@
+#!/bin/sh
+
+. /lib/functions.sh
+. /lib/functions/system.sh
+
+[ "$(board_name)" = "xiaomi,mi-router-4-pro-r1350" ] || exit 0
+
+# QCA9563 is CPU-bound on routed/NAT traffic. Use the upstream nftables
+# software flow table by default for this device; do not request unsupported
+# hardware offload. Users relying on SQM/QoS, per-packet accounting or policy
+# routing can disable this in LuCI under Firewall -> Routing/NAT Offloading.
+uci -q batch <<'EOF'
+set firewall.@defaults[0].flow_offloading='1'
+set firewall.@defaults[0].flow_offloading_hw='0'
+commit firewall
+EOF
+
+exit 0

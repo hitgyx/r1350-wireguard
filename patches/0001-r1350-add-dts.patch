@@ -1,0 +1,191 @@
+diff --git a/target/linux/ath79/dts/qca9563_xiaomi_mi-router-4-pro-r1350.dts b/target/linux/ath79/dts/qca9563_xiaomi_mi-router-4-pro-r1350.dts
+new file mode 100644
+index 000000000..0834d9b81
+--- a/target/linux/ath79/dts/qca9563_xiaomi_mi-router-4-pro-r1350.dts
++++ b/target/linux/ath79/dts/qca9563_xiaomi_mi-router-4-pro-r1350.dts
+@@ -0,0 +1,185 @@
++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
++
++#include "qca956x.dtsi"
++
++#include <dt-bindings/gpio/gpio.h>
++#include <dt-bindings/input/input.h>
++#include <dt-bindings/leds/common.h>
++
++/ {
++	model = "Xiaomi Mi Router 4 Pro (R1350, device-specific)";
++	compatible = "xiaomi,mi-router-4-pro-r1350", "qca,qca9563";
++
++	aliases {
++		label-mac-device = &eth0;
++		led-boot = &led_system_yellow;
++		led-failsafe = &led_system_yellow;
++		led-running = &led_system_blue;
++		led-upgrade = &led_system_yellow;
++	};
++
++	keys {
++		compatible = "gpio-keys";
++
++		reset {
++			label = "reset";
++			linux,code = <KEY_RESTART>;
++			gpios = <&gpio 18 GPIO_ACTIVE_LOW>;
++			debounce-interval = <60>;
++		};
++	};
++
++	leds {
++		compatible = "gpio-leds";
++
++		led_system_blue: system-blue {
++			label = "blue:system";
++			gpios = <&gpio 5 GPIO_ACTIVE_LOW>;
++		};
++
++		led_system_yellow: system-yellow {
++			label = "yellow:system";
++			gpios = <&gpio 7 GPIO_ACTIVE_LOW>;
++		};
++
++		internet-blue {
++			label = "blue:internet";
++			gpios = <&gpio 8 GPIO_ACTIVE_LOW>;
++		};
++
++		internet-yellow {
++			label = "yellow:internet";
++			gpios = <&gpio 14 GPIO_ACTIVE_LOW>;
++		};
++	};
++};
++
++&spi {
++	status = "okay";
++
++	flash@0 {
++		compatible = "jedec,spi-nor";
++		reg = <0>;
++		spi-max-frequency = <25000000>;
++
++		partitions {
++			compatible = "fixed-partitions";
++			#address-cells = <1>;
++			#size-cells = <1>;
++
++			partition@0 {
++				label = "Bootloader";
++				reg = <0x000000 0x030000>;
++				read-only;
++			};
++
++			partition@30000 {
++				label = "Nvram";
++				reg = <0x030000 0x010000>;
++				read-only;
++			};
++
++			partition@40000 {
++				label = "Bdata";
++				reg = <0x040000 0x010000>;
++				read-only;
++			};
++
++			partition@50000 {
++				label = "crash";
++				reg = <0x050000 0x010000>;
++				read-only;
++			};
++
++			art: partition@60000 {
++				label = "art";
++				reg = <0x060000 0x010000>;
++				read-only;
++
++				nvmem-layout {
++					compatible = "fixed-layout";
++					#address-cells = <1>;
++					#size-cells = <1>;
++
++					macaddr_art_0: macaddr@0 {
++						reg = <0x0 0x6>;
++					};
++
++					cal_art_1000: calibration@1000 {
++						reg = <0x1000 0x440>;
++					};
++
++					precal_art_5000: pre-calibration@5000 {
++						reg = <0x5000 0x2f20>;
++					};
++				};
++			};
++
++			partition@70000 {
++				label = "cfg_bak";
++				reg = <0x070000 0x020000>;
++				read-only;
++			};
++
++			partition@90000 {
++				label = "overlay-stock";
++				reg = <0x090000 0x170000>;
++				read-only;
++			};
++
++			partition@200000 {
++				compatible = "denx,uimage";
++				label = "firmware";
++				reg = <0x200000 0xe00000>;
++			};
++		};
++	};
++};
++
++&mdio0 {
++	status = "okay";
++
++	phy0: ethernet-phy@0 {
++		reg = <0>;
++		phy-mode = "sgmii";
++
++		qca,ar8327-initvals = <
++			0x04 0x00000080 /* PORT0 PAD MODE CTRL */
++			0x08 0x01000000 /* PORT5 PAD MODE CTRL */
++			0x0c 0x00000000 /* PORT6 PAD MODE CTRL */
++			0x10 0x602613a0 /* POWER_ON_STRAP */
++			0x50 0xcf35cf35 /* LED_CTRL0 */
++			0x54 0xca35ca35 /* LED_CTRL1 */
++			0x58 0xc935c935 /* LED_CTRL2 */
++			0x5c 0x03ffff00 /* LED_CTRL3 */
++			0x7c 0x000000fe /* PORT0_STATUS */
++			0x94 0x000010c2 /* PORT6_STATUS */
++			0xe0 0xc74164de /* SGMII_CTRL */
++		>;
++	};
++};
++
++&eth0 {
++	status = "okay";
++	phy-mode = "sgmii";
++	phy-handle = <&phy0>;
++	nvmem-cells = <&macaddr_art_0>;
++	nvmem-cell-names = "mac-address";
++};
++
++&wmac {
++	status = "okay";
++	nvmem-cells = <&cal_art_1000>;
++	nvmem-cell-names = "calibration";
++};
++
++&pcie {
++	status = "okay";
++
++	wifi@0,0 {
++		compatible = "pci168c,0056";
++		reg = <0x0000 0 0 0 0>;
++		nvmem-cells = <&precal_art_5000>;
++		nvmem-cell-names = "pre-calibration";
++	};
++};
