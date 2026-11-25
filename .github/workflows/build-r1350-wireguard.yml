@@ -27,7 +27,7 @@ jobs:
           git clone --branch openwrt-24.10 https://github.com/openwrt/openwrt.git
           cd openwrt
           git checkout 924f06e76cd73e24d39691a4de621bdcae80a756
-          git apply ../patches/0001-r1350-add-dts.patch
+          sed 's|^--- a/.*|--- /dev/null|' ../patches/0001-r1350-add-dts.patch | git apply
           git apply ../patches/0002-r1350-image-leds-network.patch
           cp ../files/etc/uci-defaults/99-r1350-flow-offload \
              target/linux/ath79/generic/base-files/etc/uci-defaults/
